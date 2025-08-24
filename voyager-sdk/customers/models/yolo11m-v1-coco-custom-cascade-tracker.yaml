@@ -1,0 +1,127 @@
+axelera-model-format: 1.0.0
+
+name: yolo11m-v1-coco-custom-cascade-tracker
+
+description: YOLO11M with object tracking (OC-SORT)
+
+pipeline:
+  - detections:
+      model_name: yolo11m-coco-onnx
+      preprocess:
+        - letterbox:
+            width: 640
+            height: 640
+        - torch-totensor:
+      postprocess:
+        - decodeyolo:
+            box_format: xywh
+            normalized_coord: False
+            # label_filter: ['cat', 'potted_plant', 'custom_bowl', 'custom_pet_fountain']
+            max_nms_boxes: 5000
+            conf_threshold: 0.3
+            nms_iou_threshold: 0.5
+            nms_class_agnostic: False
+            nms_top_k: 100
+            use_multi_label: False
+  - pet_tracker:
+      model_name: oc_sort
+      input:
+        source: full
+        color_format: RGB
+      cv_process:
+        - tracker:
+            algorithm: oc-sort
+            bbox_task_name: detections
+            label_filter: cat
+            history_length: 300
+            algo_params:
+              max_age: 50
+              min_hits: 1
+              iou_threshold: 0.3
+              max_id: 0
+  - bowl_level:
+      model_name: mobilenetv2-imagenet-bowl
+      input:
+        type: image
+        source: roi
+        label_filter: custom_bowl
+        where: detections
+        which: AREA # AREA, SCORE, CENTER
+        top_k: 5
+      preprocess:
+        - resize:
+            size: 256
+        - centercrop:
+            width: ${{input_width}}
+            height: ${{input_height}}
+        - torch-totensor:
+        - normalize:
+            mean: 0.485, 0.456, 0.406
+            std: 0.229, 0.224, 0.225
+      postprocess:
+        - topk:
+            k: 3
+
+operators:
+  decodeyolo:
+    class: DecodeYolo
+    class_path: $AXELERA_FRAMEWORK/ax_models/decoders/yolo.py
+
+models:
+  yolo11m-coco-onnx:
+    class: AxONNXModel
+    class_path: $AXELERA_FRAMEWORK/ax_models/base_onnx.py
+    weight_path: yolo11m_bowl_fountain_finetune.onnx
+    # weight_url: https://media.axelera.ai/artifacts/model_cards/weights/yolo/object_detection/yolo11m.onnx
+    # weight_md5: 8385c5e22f0d91eb20133afd021852c5
+    task_category: ObjectDetection
+    input_tensor_layout: NCHW
+    input_tensor_shape: [1, 3, 640, 640]
+    input_color_format: RGB
+    num_classes: 82
+    dataset: CocoDataset-COCO2017
+    extra_kwargs:
+      aipu_cores: 1
+      compilation_config:
+        quantization_scheme: per_tensor_min_max
+        ignore_weight_buffers: False
+  oc_sort:
+    model_type: CLASSICAL_CV
+    task_category: ObjectTracking
+  mobilenetv2-imagenet-bowl:
+    class: AxONNXModel
+    class_path: $AXELERA_FRAMEWORK/ax_models/base_onnx.py
+    weight_path: mobilenetv2_bowl_level_classifier.onnx
+    task_category: Classification
+    input_tensor_layout: NCHW
+    input_tensor_shape: [1, 3, 224, 224]
+    input_color_format: RGB # RGB, BGR, Gray
+    dataset: bowl-custom
+    num_classes: 3
+    extra_kwargs:
+      aipu_cores: 1
+      num-cal-images: 24
+
+datasets: # Python dataloader
+  CocoDataset-COCO2017:
+    class: ObjDataAdapter
+    class_path: $AXELERA_FRAMEWORK/ax_datasets/objdataadapter.py
+    data_dir_name: coco
+    labels_path: $AXELERA_FRAMEWORK/customers/datasets/labels/yolo_custom.names
+    label_type: COCO2017
+    repr_imgs_dir_path: $AXELERA_FRAMEWORK/data/coco2017_400_b680128
+    repr_imgs_url: https://media.axelera.ai/artifacts/data/coco/coco2017_repr400.zip
+    repr_imgs_md5: b680128512392586e3c86b670886d9fa
+  bowl-custom:
+    class: TorchvisionDataAdapter
+    class_path: $AXELERA_FRAMEWORK/ax_datasets/torchvision.py
+    data_dir_name: ImageNet
+    labels_path: $AXELERA_FRAMEWORK/customers/datasets/labels/bowl.txt
+    # Use COCO as representative images due to ImageNet's redistribution restrictions and large dataset size.
+    # Suggest selecting 100-400 images from the ImageNet training dataset for representative images and
+    # replacing the following representative_coco dataset with the selected images.
+    repr_imgs_dir_path: $AXELERA_FRAMEWORK/customers/data/mobilenet_bowl/repr
+    # repr_imgs_url: https://media.axelera.ai/artifacts/data/coco/coco2017_repr400.zip
+    # repr_imgs_md5: b680128512392586e3c86b670886d9fa
+    # cal_data: /path/to/the/cal/dir
+    # val_data: /path/to/the/val/dir
