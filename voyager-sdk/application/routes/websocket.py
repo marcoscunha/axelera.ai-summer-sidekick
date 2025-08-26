@@ -12,14 +12,15 @@ from fastapi import WebSocketDisconnect
 router = APIRouter()
 
 
-@router.websocket("/")
-async def websocket_endpoint(websocket: WebSocket):
+@router.websocket("/status")
+async def websocket_status(websocket: WebSocket):
     await websocket.accept()
+    logger.info(f"WebSocket client connected: {websocket.client}")
     app_state.connected_clients.add(websocket)
 
     try:
         while True:
-            # Send status updates every second
+            # Send status update
             status_data = {
                 "type": "status_update",
                 "data": {
@@ -33,8 +34,9 @@ async def websocket_endpoint(websocket: WebSocket):
                     # "water_solenoid_states": app_state.water_solenoid_states
                 }
             }
+            await websocket.send_text(json.dumps(status_data))
 
-            # Send current frame if available
+            # Send frame update if available
             if app_state.current_frame:
                 img_base64 = frame_to_base64(app_state.current_frame)
                 if img_base64:
@@ -47,11 +49,10 @@ async def websocket_endpoint(websocket: WebSocket):
                     }
                     await websocket.send_text(json.dumps(frame_data))
 
-            await websocket.send_text(json.dumps(status_data))
             await asyncio.sleep(1)
-
     except WebSocketDisconnect:
         app_state.connected_clients.discard(websocket)
+        logger.info("WebSocket client disconnected (going away)")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         app_state.connected_clients.discard(websocket)
