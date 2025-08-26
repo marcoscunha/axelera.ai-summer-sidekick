@@ -6,6 +6,7 @@ from application.routes.system import router as SystemRoutes
 from application.routes.websocket import router as WebSocketRoutes
 from fastapi import FastAPI
 from fastapi import Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -24,6 +25,14 @@ app.include_router(WebSocketRoutes, tags=["WebSocket"], prefix="/ws")
 # Mount static files and templates
 app.mount("/static", StaticFiles(directory="application/static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or specify your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/", response_class=HTMLResponse)
