@@ -12,39 +12,46 @@ from axelera.app.stream import create_inference_stream
 def inference_worker():
     """Background worker for inference processing"""
     setup_socket_fix()
-
-    # Create tracers
     tracers = inf_tracers.create_tracers('core_temp', 'end_to_end_fps', 'cpu_usage')
-
-    # Create inference stream
     stream = create_inference_stream(
         network="yolo11m-v1-coco-custom-cascade-tracker",
-        sources=["usb:20"],
+        sources=["usb:20", "usb:22"],  # Use both cameras
         log_level=logging_utils.INFO,
         tracers=tracers,
     )
-
     app_state.stream = stream
+
     app_state.system_running = True
 
+    # Store latest frame per camera
+    app_state.current_frames = {}
+
     try:
-        for frame_result in stream:
+        for frame_result in app_state.stream:
             if app_state.stop_inference:
                 break
 
-            app_state.current_frame = frame_result
+            # Identify camera by stream_id or index
+            cam_id = getattr(frame_result, "stream_id", None)
+            if cam_id is None:
+                cam_id = 0  # fallback if stream_id not present
+
+            app_state.current_frames[cam_id] = frame_result
+
             app_state.update_detection_metrics(frame_result)
 
             # Add to history (keep last 100 frames)
             detection_data = {
                 'timestamp': datetime.now(),
-                'frame_id': frame_result.stream_id,
+                'frame_id': getattr(frame_result, "stream_id", None),
                 'objects': []
             }
 
-            if frame_result.meta:
+            # If meta is available, handle accordingly
+            meta = getattr(frame_result, "meta", None)
+            if meta:
                 try:
-                    for key, meta_obj in frame_result.meta.items():
+                    for key, meta_obj in meta.items():
                         if hasattr(meta_obj, 'objects'):
                             for obj in meta_obj.objects:
                                 obj_data = {
@@ -65,6 +72,7 @@ def inference_worker():
         logger.error(f"Error in inference worker: {e}")
     finally:
         app_state.system_running = False
-        if stream:
-            stream.stop()
-            stream.stop()
+        if app_state.stream:
+            app_state.stream.stop()
+            app_state.stream = None
+            app_state.stream = None

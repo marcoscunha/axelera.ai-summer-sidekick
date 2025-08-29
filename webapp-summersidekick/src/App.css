@@ -1,16 +1,36 @@
+.led-indicator {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  margin-right: 0.5em;
+  vertical-align: middle;
+  box-shadow: 0 0 8px #0002;
+  border: 2px solid #eee;
+}
+.led-green {
+  background: linear-gradient(135deg, #2ecc40 60%, #b6ffb6 100%);
+  box-shadow: 0 0 8px #2ecc40;
+}
+.led-gray {
+  background: linear-gradient(135deg, #bbb 60%, #eee 100%);
+  box-shadow: 0 0 8px #bbb;
+}
 
 body {
   background: #f7f8fa;
   font-family: 'Segoe UI', Arial, sans-serif;
 }
 
-.pet-monitor-container {
-  max-width: 900px;
+  max-width: 1280px;
   margin: 2rem auto;
+  padding: 2rem;
+  text-align: center;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 24px #0001;
-  padding: 2rem 2.5rem;
+  display: inline-block;
+  min-width: 320px;
 }
 
 .dashboard-header {

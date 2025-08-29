@@ -32,27 +32,34 @@ async def websocket_status(websocket: WebSocket):
                     "fountain_water_level": round(app_state.fountain_water_level, 2),
                     "plant_health_status": app_state.plant_health_status,
                     # "water_solenoid_states": app_state.water_solenoid_states
+                    # value from 0 to 4095
+                    "moisture_gauge": getattr(app_state, "moisture_gauge", 0)
                 }
             }
             await websocket.send_text(json.dumps(status_data))
 
-            # Send frame update if available
-            if app_state.current_frame:
-                img_base64 = frame_to_base64(app_state.current_frame)
-                if img_base64:
-                    frame_data = {
-                        "type": "frame_update",
-                        "data": {
-                            "image": img_base64,
-                            "timestamp": datetime.now().isoformat()
+            # Send frame updates for all cameras
+            current_frames = getattr(app_state, "current_frames", {})
+            for cam_id, frame_result in current_frames.items():
+                img = getattr(frame_result, "image", None)
+                if img is not None:
+                    img_base64 = frame_to_base64(img)
+                    if img_base64:
+                        frame_data = {
+                            "type": f"frame_update_cam{cam_id}",
+                            "data": {
+                                "image": img_base64,
+                                "timestamp": datetime.now().isoformat()
+                            }
                         }
-                    }
-                    await websocket.send_text(json.dumps(frame_data))
+                        await websocket.send_text(json.dumps(frame_data))
 
             await asyncio.sleep(1)
     except WebSocketDisconnect:
         app_state.connected_clients.discard(websocket)
         logger.info("WebSocket client disconnected (going away)")
     except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        app_state.connected_clients.discard(websocket)
         logger.error(f"WebSocket error: {e}")
         app_state.connected_clients.discard(websocket)

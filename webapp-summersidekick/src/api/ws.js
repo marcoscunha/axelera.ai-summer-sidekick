@@ -6,7 +6,8 @@ const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 export function useSystemStatusWS() {
   const [status, setStatus] = useState(null);
-  const [frame, setFrame] = useState(null);
+  const [frame0, setFrame0] = useState(null);
+  const [frame1, setFrame1] = useState(null);
   const [wsConnected, setWsConnected] = useState(false);
   const wsRef = useRef(null);
 
@@ -32,8 +33,10 @@ export function useSystemStatusWS() {
         const msg = JSON.parse(event.data);
         if (msg.type === 'status_update' && msg.data) {
           setStatus(msg.data);
-        } else if (msg.type === 'frame_update' && msg.data) {
-          setFrame(msg.data.image);
+        } else if (msg.type === 'frame_update_cam0' && msg.data) {
+          setFrame0(msg.data.image);
+        } else if (msg.type === 'frame_update_cam1' && msg.data) {
+          setFrame1(msg.data.image);
         }
       } catch (e) {
         console.error('WebSocket message parse error:', e);
@@ -67,5 +70,5 @@ export function useSystemStatusWS() {
     }
   }, [status]);
 
-  return { status, frame, wsConnected, reconnect: connectWebSocket };
+  return { status, frame0, frame1, wsConnected, reconnect: connectWebSocket };
 }
