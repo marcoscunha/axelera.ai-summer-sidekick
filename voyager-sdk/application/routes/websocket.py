@@ -26,14 +26,26 @@ async def websocket_status(websocket: WebSocket):
                 "data": {
                     "running": app_state.system_running,
                     "frame_count": app_state.frame_count,
-                    "fps": round(app_state.fps, 2),
+                    "fps": {"value": app_state.fps.value,
+                            "unit": app_state.fps.unit},
                     "pet_activity_level": round(app_state.pet_activity_level, 2),
-                    "bowl_fill_level": round(app_state.bowl_fill_level, 2),
                     "fountain_water_level": round(app_state.fountain_water_level, 2),
                     "plant_health_status": app_state.plant_health_status,
+                    "core_temp": {"value": app_state.core_temp.value,
+                                  "unit": app_state.core_temp.unit},
+                    "cpu_usage":  {"value": app_state.cpu_usage.value,
+                                   "unit": app_state.cpu_usage.unit},
+                    "bowl_level": {
+                        "label": app_state.bowl_level.label,
+                        "score": round(app_state.bowl_level.score, 2),
+                        "last_detection_time": app_state.bowl_level.last_detection_time.isoformat(),
+                        "first_detection_time": app_state.bowl_level.first_detection_time.isoformat(),
+                        "since_first_detection_seconds": (app_state.bowl_level.last_detection_time - app_state.bowl_level.first_detection_time).total_seconds()
+                    },
+                    # "core_temp": getattr(app_state, "core_temp", {"value": 0, "unit": "C"}),
                     # "water_solenoid_states": app_state.water_solenoid_states
                     # value from 0 to 4095
-                    "moisture_gauge": getattr(app_state, "moisture_gauge", 0)
+                    # "moisture_gauge": getattr(app_state, "moisture_gauge", 0)
                 }
             }
             await websocket.send_text(json.dumps(status_data))
@@ -59,7 +71,5 @@ async def websocket_status(websocket: WebSocket):
         app_state.connected_clients.discard(websocket)
         logger.info("WebSocket client disconnected (going away)")
     except Exception as e:
-        logger.error(f"WebSocket error: {e}")
-        app_state.connected_clients.discard(websocket)
         logger.error(f"WebSocket error: {e}")
         app_state.connected_clients.discard(websocket)

@@ -1,3 +1,6 @@
+import json
+
+from application.models.config import SystemConfig
 from application.routes.detections import router as DetectionsRoutes
 from application.routes.root import router as RootRoutes
 from application.routes.status import router as StatusRoutes
@@ -12,7 +15,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 # FastAPI app
-app = FastAPI(title="Pet Monitoring System", version="1.0.0")
+app = FastAPI(title="Summer Sidekick - Axelera AI", version="1.0.0")
+
+# Load configuration at boot time
+with open("application/config.json") as f:
+    config_dict = json.load(f)
+app.state.config = SystemConfig.parse_obj(config_dict)
 
 # Import routes
 app.include_router(DetectionsRoutes, tags=["Detections"], prefix="/api/detections")
@@ -41,4 +49,5 @@ async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 if __name__ == "__main__":
+    pass
     pass

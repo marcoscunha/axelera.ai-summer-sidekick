@@ -46,4 +46,3 @@ async def stop_system():
         else:
             return {"status": "failed_to_stop"}
     return {"status": "already_stopped"}
-    return {"status": "already_stopped"}

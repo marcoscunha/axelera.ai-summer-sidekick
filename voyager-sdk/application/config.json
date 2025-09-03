@@ -1,0 +1,33 @@
+{
+    "pet_activity": {
+        "evaluation_time": {
+            "type": "always"
+        },
+        "trigger": {
+            "label": "cat",
+            "hold_label_in_seconds": 1
+        }
+    },
+    "food_dispenser": {
+        "portions": 7,
+        "evaluation_time": {
+            "type": "always"
+        },
+        "trigger": {
+            "label": "bolw_empty",
+            "hold_label_in_seconds": 60
+        }
+    },
+    "fountain": {
+        "dispenser_time_in_seconds": 10,
+        "evaluation_time": {
+            "type": "time_range",
+            "from": "00:00",
+            "to": "05: 00"
+        },
+        "trigger": {
+            "label": "fountain_low",
+            "hold_label_in_seconds": 600
+        }
+    }
+}

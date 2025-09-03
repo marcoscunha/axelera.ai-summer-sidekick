@@ -60,7 +60,7 @@ pipeline:
             std: 0.229, 0.224, 0.225
       postprocess:
         - topk:
-            k: 3
+            k: 1
 
 operators:
   decodeyolo:
@@ -81,7 +81,8 @@ models:
     num_classes: 82
     dataset: CocoDataset-COCO2017
     extra_kwargs:
-      aipu_cores: 1
+      max_compiler_cores: 8
+      aipu_cores: 2
       compilation_config:
         quantization_scheme: per_tensor_min_max
         ignore_weight_buffers: False
@@ -99,7 +100,8 @@ models:
     dataset: bowl-custom
     num_classes: 3
     extra_kwargs:
-      aipu_cores: 1
+      max_compiler_cores: 8
+      aipu_cores: 2
       num-cal-images: 24
 
 datasets: # Python dataloader
@@ -114,6 +116,7 @@ datasets: # Python dataloader
     repr_imgs_md5: b680128512392586e3c86b670886d9fa
   bowl-custom:
     class: TorchvisionDataAdapter
+    # class: ObjDataAdapter
     class_path: $AXELERA_FRAMEWORK/ax_datasets/torchvision.py
     data_dir_name: ImageNet
     labels_path: $AXELERA_FRAMEWORK/customers/datasets/labels/bowl.txt

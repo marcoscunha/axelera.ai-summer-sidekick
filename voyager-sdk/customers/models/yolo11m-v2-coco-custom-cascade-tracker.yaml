@@ -1,12 +1,12 @@
 axelera-model-format: 1.0.0
 
-name: yolo11n-v1-coco-custom-cascade-tracker
+name: yolo11m-v2-coco-custom-cascade-tracker
 
-description: YOLO11N with object tracking (OC-SORT)
+description: YOLO11M with object tracking (OC-SORT), YOLO11N with custom classes cascaded with mobilenet_bowl_level
 
 pipeline:
-  - detections:
-      model_name: yolo11n-coco-onnx
+  - full_detections:
+      model_name: yolo11m-coco-onnx
       preprocess:
         - letterbox:
             width: 640
@@ -16,7 +16,24 @@ pipeline:
         - decodeyolo:
             box_format: xywh
             normalized_coord: False
-            # label_filter: ['cat', 'potted_plant', 'custom_bowl', 'custom_pet_fountain']
+            max_nms_boxes: 5000
+            conf_threshold: 0.3
+            nms_iou_threshold: 0.5
+            nms_class_agnostic: False
+            nms_top_k: 100
+            use_multi_label: False
+  - custom_detections:
+      model_name: yolo11n-coco-custom-onnx
+      preprocess:
+        - letterbox:
+            width: 640
+            height: 640
+        - torch-totensor:
+      postprocess:
+        - decodeyolo:
+            box_format: xywh
+            normalized_coord: False
+            label_filter: ['cat', 'potted_plant', 'custom_bowl', 'custom_pet_fountain']
             max_nms_boxes: 5000
             conf_threshold: 0.3
             nms_iou_threshold: 0.5
@@ -31,7 +48,7 @@ pipeline:
       cv_process:
         - tracker:
             algorithm: oc-sort
-            bbox_task_name: detections
+            bbox_task_name: full_detections
             label_filter: cat
             history_length: 300
             algo_params:
@@ -45,7 +62,7 @@ pipeline:
         type: image
         source: roi
         label_filter: custom_bowl
-        where: detections
+        where: custom_detections
         which: AREA # AREA, SCORE, CENTER
         top_k: 5
       preprocess:
@@ -68,7 +85,25 @@ operators:
     class_path: $AXELERA_FRAMEWORK/ax_models/decoders/yolo.py
 
 models:
-  yolo11n-coco-onnx:
+  yolo11m-coco-onnx:
+    class: AxONNXModel
+    class_path: $AXELERA_FRAMEWORK/ax_models/base_onnx.py
+    weight_path: weights/yolo11m-8.3-dynamic.onnx
+    weight_url: https://media.axelera.ai/artifacts/model_cards/weights/yolo/object_detection/yolo11m.onnx
+    weight_md5: 8385c5e22f0d91eb20133afd021852c5
+    task_category: ObjectDetection
+    input_tensor_layout: NCHW
+    input_tensor_shape: [1, 3, 640, 640]
+    input_color_format: RGB
+    num_classes: 82
+    dataset: CocoDataset-COCO2017
+    extra_kwargs:
+      max_compiler_cores: 6
+      aipu_cores: 2
+      compilation_config:
+        quantization_scheme: per_tensor_min_max
+        ignore_weight_buffers: False
+  yolo11n-coco-custom-onnx:
     class: AxONNXModel
     class_path: $AXELERA_FRAMEWORK/ax_models/base_onnx.py
     weight_path: yolo11n_bowl_fountain_finetune.onnx
@@ -81,6 +116,7 @@ models:
     num_classes: 82
     dataset: CocoDataset-COCO2017
     extra_kwargs:
+      max_compiler_cores: 6
       aipu_cores: 1
       compilation_config:
         quantization_scheme: per_tensor_min_max
@@ -99,6 +135,7 @@ models:
     dataset: bowl-custom
     num_classes: 3
     extra_kwargs:
+      max_compiler_cores: 6
       aipu_cores: 1
       num-cal-images: 24
 
@@ -114,6 +151,7 @@ datasets: # Python dataloader
     repr_imgs_md5: b680128512392586e3c86b670886d9fa
   bowl-custom:
     class: TorchvisionDataAdapter
+    # class: ObjDataAdapter
     class_path: $AXELERA_FRAMEWORK/ax_datasets/torchvision.py
     data_dir_name: ImageNet
     labels_path: $AXELERA_FRAMEWORK/customers/datasets/labels/bowl.txt
