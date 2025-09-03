@@ -79,6 +79,10 @@ body {
   color: #2ecc40;
   font-weight: bold;
 }
+.status-inactive {
+  color: #cc2e70;
+  font-weight: bold;
+}
 
 .camera-stream {
   text-align: center;

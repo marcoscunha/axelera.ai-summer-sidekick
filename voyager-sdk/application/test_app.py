@@ -34,6 +34,14 @@ def test_inference():
             print(f"  first_time : {app_state.bowl_level.first_detection_time.isoformat()}")
             print(
                 f"  since      : {(app_state.bowl_level.last_detection_time - app_state.bowl_level.first_detection_time).total_seconds()} seconds")
+            print(f"**********************************")
+            print(f"pet_activity")
+            print(f"  active     : {app_state.pet_activity.active}")
+            print(f"  score      : {app_state.pet_activity.score}")
+            print(f"  last_time  : {app_state.pet_activity.last_active_time.isoformat()}")
+            print(f"  first_time : {app_state.pet_activity.first_active_time.isoformat()}")
+            print(
+                f"  since      : {(app_state.pet_activity.last_active_time - app_state.pet_activity.first_active_time).total_seconds()} seconds")
             time.sleep(1)
 
         # def center(box): return ((box[0] + box[2]) // 2, (box[1] + box[3]) // 2)

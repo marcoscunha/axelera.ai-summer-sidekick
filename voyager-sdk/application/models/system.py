@@ -13,6 +13,14 @@ class BowlLevel(BaseModel):
     since_first_detection_seconds: float = 0.0
 
 
+class PetActivity(BaseModel):
+    active: bool = False
+    score: float = 0.0
+    last_active_time: Optional[datetime] = None
+    first_active_time: Optional[datetime] = None
+    since_first_active_seconds: float = 0.0
+
+
 class ValueUnit(BaseModel):
     value: float
     unit: str
@@ -24,7 +32,7 @@ class SystemStatus(BaseModel):
     fps: ValueUnit
     core_temp: ValueUnit
     cpu_usage: ValueUnit
-    pet_activity_level: float
+    pet_activity: PetActivity
     bowl_level: BowlLevel
     fountain_water_level: float
     plant_health_status: str

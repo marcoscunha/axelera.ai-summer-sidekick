@@ -19,7 +19,24 @@ function formatSecondsAdaptive(seconds) {
   if (h > 0) result += `${h}:`;
   if (m > 0 || h > 0) result += `${h > 0 && m < 10 ? '0' : ''}${m}:`;
   result += `${(m > 0 || h > 0) && s < 10 ? '0' : ''}${s}`;
+  if (h === 0 && m === 0) {
+    result += ' seconds';
+  }
   return result;
+}
+
+// Helper to format ISO date string to 'Date: DD/MM/YYYY Time: HH:MM'
+function formatDateTime(dateString) {
+  if (!dateString) return 'N/A';
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return 'N/A';
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  // return `Date: ${day}/${month}/${year} Time: ${hours}:${minutes}`;
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
 // Helper to publish RESET to a topic
@@ -53,7 +70,6 @@ function App() {
   const [feedPortions, setFeedPortions] = React.useState(1);
   const publishFeed = useFeedDispenserPublisher();
   const [feedLoading, setFeedLoading] = React.useState(false);
-  const [doubleCameraSize, setDoubleCameraSize] = React.useState(false);
 
   const handleStart = async () => {
     setPendingAction('start');
@@ -78,7 +94,9 @@ function App() {
   };
   // Extract status info
   const petStatus = status ? {
-    activity: status.pet_activity_level,
+    pet_active: status.pet_activity?.active,
+    last_pet_active: status.pet_activity?.last_active_time,
+    since_pet_active: status.pet_activity?.since_first_active_seconds,
     bowl_label: status.bowl_level.label,
     since_bowl_level: status.bowl_level.since_first_detection_seconds,
     fountain: status.fountain_water_level,
@@ -123,9 +141,16 @@ function App() {
         <div className="dashboard-item">
           <h2>Pet Status</h2>
           <ul>
-            <li>Activity Level: <span className="status-active">{petStatus.activity ?? 'N/A'}</span></li>
+            <li>Pet Activity Status: <span className={petStatus.pet_active ? "status-active" : "status-inactive"}>{petStatus.pet_active ? "Active" : "Inactive" ?? 'N/A'}</span></li>
+            <li>Last Pet Active: {petStatus.last_pet_active !== undefined ?
+              formatDateTime(petStatus.last_pet_active) : 'N/A'
+            }</li>
+            <li>Duration Pet Active: {petStatus.pet_active !== undefined
+              ? formatSecondsAdaptive(petStatus.since_pet_active)
+              : 'N/A'
+            }</li>
             <li>Bowl Level: {petStatus.bowl_label ?? 'N/A'}</li>
-            <li>Since Bowl Level: {
+            <li>Duration Bowl Level: {
               petStatus.since_bowl_level !== undefined
                 ? formatSecondsAdaptive(petStatus.since_bowl_level)
                 : 'N/A'
@@ -150,14 +175,12 @@ function App() {
             <img
               src={`data:image/jpeg;base64,${frame0}`}
               alt="Live Camera 0"
-              width={doubleCameraSize ? 640 : 320}
-              height={doubleCameraSize ? 360 : 180}
-              style={{ borderRadius: '12px', boxShadow: '0 2px 12px #0002', objectFit: 'cover', cursor: 'pointer' }}
-              onClick={() => setDoubleCameraSize(size => !size)}
+              width={640}
+              height={360}
+              style={{ borderRadius: '12px', boxShadow: '0 2px 12px #0002', objectFit: 'cover' }}
             />
           ) : (
-            <div style={{ width: doubleCameraSize ? 640 : 320, height: doubleCameraSize ? 360 : 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eee', borderRadius: '12px', boxShadow: '0 2px 12px #0002', cursor: 'pointer' }}
-              onClick={() => setDoubleCameraSize(size => !size)}>
+            <div style={{ width: 640, height: 360, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eee', borderRadius: '12px', boxShadow: '0 2px 12px #0002' }}>
               <span style={{ color: '#888' }}>Waiting for live frame...</span>
             </div>
           )}
@@ -169,14 +192,12 @@ function App() {
             <img
               src={`data:image/jpeg;base64,${frame1}`}
               alt="Live Camera 1"
-              width={doubleCameraSize ? 640 : 320}
-              height={doubleCameraSize ? 360 : 180}
-              style={{ borderRadius: '12px', boxShadow: '0 2px 12px #0002', objectFit: 'cover', cursor: 'pointer' }}
-              onClick={() => setDoubleCameraSize(size => !size)}
+              width={640}
+              height={360}
+              style={{ borderRadius: '12px', boxShadow: '0 2px 12px #0002', objectFit: 'cover' }}
             />
           ) : (
-            <div style={{ width: doubleCameraSize ? 640 : 320, height: doubleCameraSize ? 360 : 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eee', borderRadius: '12px', boxShadow: '0 2px 12px #0002', cursor: 'pointer' }}
-              onClick={() => setDoubleCameraSize(size => !size)}>
+            <div style={{ width: 640, height: 360, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eee', borderRadius: '12px', boxShadow: '0 2px 12px #0002' }}>
               <span style={{ color: '#888' }}>Waiting for live frame...</span>
             </div>
           )}

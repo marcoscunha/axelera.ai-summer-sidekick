@@ -14,8 +14,9 @@ def inference_worker():
     setup_socket_fix()
     tracers = inf_tracers.create_tracers('core_temp', 'end_to_end_fps', 'cpu_usage')
     stream = create_inference_stream(
-        network="yolo11m-v1-coco-custom-cascade-tracker",
-        # sources=["usb:20", "usb:22"],  # Use both cameras
+        # network="yolo11m-v1-coco-custom-cascade-tracker",
+        network="yolo11m-v2-coco-custom-cascade-tracker",
+        # sources=["usb:20", "usb:23"],  # Use both cameras
         sources=["usb:20"],  # Use one camera
         log_level=logging_utils.INFO,
         tracers=tracers,

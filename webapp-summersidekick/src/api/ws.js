@@ -56,41 +56,6 @@ export function useSystemStatusWS() {
         } else if (msg.type === 'frame_update_cam1' && msg.data) {
           setFrame1(msg.data.image);
         }
-        // } else if (msg.type === 'mqtt_message') {
-        //   // Handle direct power state updates
-        //   if (msg.topic === 'stat/4CHPRO/POWER1') {
-        //     setRelayStatus(prev => ({
-        //       ...prev,
-        //       relay1: msg.payload
-        //     }));
-        //   } else if (msg.topic === 'stat/4CHPRO/POWER2') {
-        //     console.log('Received POWER2 message:', msg.payload);
-        //     setRelayStatus(prev => ({
-        //       ...prev,
-        //       relay2: msg.payload
-        //     }));
-        //   }
-          // Handle RESULT messages which contain power state updates
-        //   else if (msg.topic === 'stat/4CHPRO/RESULT') {
-        //     try {
-        //       const result = JSON.parse(msg.payload);
-        //       if (result.POWER1) {
-        //         setRelayStatus(prev => ({
-        //           ...prev,
-        //           relay1: result.POWER1
-        //         }));
-        //       }
-        //       if (result.POWER2) {
-        //         setRelayStatus(prev => ({
-        //           ...prev,
-        //           relay2: result.POWER2
-        //         }));
-        //       }
-        //     } catch (e) {
-        //       console.error('Error parsing MQTT RESULT message:', e);
-        //     }
-        //   }
-        // }
       } catch (e) {
         console.error('WebSocket message parse error:', e);
       }

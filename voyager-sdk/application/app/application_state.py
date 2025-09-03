@@ -26,6 +26,35 @@ class BowlLevel:
             self._diff_count = 0
 
 
+class PetActivity:
+    active: bool = False
+    score: float = 0.0
+    last_active_time: datetime = datetime.now()
+    first_active_time: datetime = datetime.now()
+    _diff_count = 0
+
+    def update_activity(self, has_cat, score=1.0):
+        if has_cat != self.active:
+            self._diff_count += 1
+            if self._diff_count >= 30:
+                if has_cat:
+                    # Becoming active
+                    self.active = True
+                    self.last_active_time = datetime.now()
+                    self.first_active_time = self.last_active_time
+                else:
+                    # Becoming inactive
+                    self.active = False
+
+                self.score = score
+                self._diff_count = 0
+        else:
+            if self.active:
+                self.last_active_time = datetime.now()
+            self.score = score
+            self._diff_count = 0
+
+
 class AutomaticFoodDispenser:
     last_activity_time = 0
     dispense_interval = 3600  # seconds
@@ -40,7 +69,7 @@ class ApplicationState:
         self.stream = None
         self.current_frame = None
         self.detections_history = []
-        self.pet_activity_level = 0.0
+        self.pet_activity = PetActivity()
         self.fountain_water_level = 0.0
         self.plant_health_status = "unknown"
         self.water_solenoid_states = {"solenoid_1": False, "solenoid_2": False}
@@ -77,15 +106,25 @@ class ApplicationState:
         pass
 
     def model_handler_full_detections(self, meta_obj):
+        has_cat = False
+        cat_score = 0.0
+        cat_label = None
         if hasattr(meta_obj, 'objects'):
             objects = meta_obj.objects
             for obj in objects:
+
                 if hasattr(obj, 'label') and hasattr(obj, 'score'):
                     if hasattr(obj.label, 'name'):
                         label = obj.label.name.lower()
                     else:
                         label = str(obj.label).lower()
                     score = (obj.score if hasattr(obj, 'score') else 1.0)
+
+                if label == 'cat' and not has_cat:
+                    has_cat = True
+                    cat_score = score
+
+            self.pet_activity.update_activity(has_cat, cat_score)
 
     def model_handler_custom_detections(self, meta_obj):
         if hasattr(meta_obj, 'objects'):
@@ -206,4 +245,5 @@ class ApplicationState:
 
 
 # Global application state (true singleton as long as always imported from here)
+app_state = ApplicationState()
 app_state = ApplicationState()

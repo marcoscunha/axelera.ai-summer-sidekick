@@ -28,7 +28,6 @@ async def websocket_status(websocket: WebSocket):
                     "frame_count": app_state.frame_count,
                     "fps": {"value": app_state.fps.value,
                             "unit": app_state.fps.unit},
-                    "pet_activity_level": round(app_state.pet_activity_level, 2),
                     "fountain_water_level": round(app_state.fountain_water_level, 2),
                     "plant_health_status": app_state.plant_health_status,
                     "core_temp": {"value": app_state.core_temp.value,
@@ -42,10 +41,13 @@ async def websocket_status(websocket: WebSocket):
                         "first_detection_time": app_state.bowl_level.first_detection_time.isoformat(),
                         "since_first_detection_seconds": (app_state.bowl_level.last_detection_time - app_state.bowl_level.first_detection_time).total_seconds()
                     },
-                    # "core_temp": getattr(app_state, "core_temp", {"value": 0, "unit": "C"}),
-                    # "water_solenoid_states": app_state.water_solenoid_states
-                    # value from 0 to 4095
-                    # "moisture_gauge": getattr(app_state, "moisture_gauge", 0)
+                    "pet_activity": {
+                        "active": app_state.pet_activity.active,
+                        # "score": round(app_state.pet_activity.score, 2),
+                        "last_active_time": app_state.pet_activity.last_active_time.isoformat(),
+                        "first_active_time": app_state.pet_activity.first_active_time.isoformat(),
+                        "since_first_active_seconds": (app_state.pet_activity.last_active_time - app_state.pet_activity.first_active_time).total_seconds()
+                    }
                 }
             }
             await websocket.send_text(json.dumps(status_data))
