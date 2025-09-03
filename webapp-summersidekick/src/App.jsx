@@ -8,6 +8,20 @@ import { useMqttStatus } from './api/useMqttStatus';
 import { useSystemStatusWS } from './api/ws';
 import { Settings } from './components/settings';
 
+
+// Helper to format seconds to adaptive HH:MM:SS
+function formatSecondsAdaptive(seconds) {
+  seconds = Math.floor(seconds);
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  let result = '';
+  if (h > 0) result += `${h}:`;
+  if (m > 0 || h > 0) result += `${h > 0 && m < 10 ? '0' : ''}${m}:`;
+  result += `${(m > 0 || h > 0) && s < 10 ? '0' : ''}${s}`;
+  return result;
+}
+
 // Helper to publish RESET to a topic
 function publishReset(topic) {
   const MQTT_BROKER_URL = import.meta.env.VITE_MQTT_BROKER_URL || 'ws://192.168.1.100:9001';
@@ -39,6 +53,7 @@ function App() {
   const [feedPortions, setFeedPortions] = React.useState(1);
   const publishFeed = useFeedDispenserPublisher();
   const [feedLoading, setFeedLoading] = React.useState(false);
+  const [doubleCameraSize, setDoubleCameraSize] = React.useState(false);
 
   const handleStart = async () => {
     setPendingAction('start');
@@ -61,11 +76,11 @@ function App() {
       setPendingAction(null);
     }
   };
-
   // Extract status info
   const petStatus = status ? {
     activity: status.pet_activity_level,
-    bowl: status.bowl_fill_level,
+    bowl_label: status.bowl_level.label,
+    since_bowl_level: status.bowl_level.since_first_detection_seconds,
     fountain: status.fountain_water_level,
   } : {};
   const plantStatus = status ? {
@@ -74,7 +89,9 @@ function App() {
   const systemStatus = status ? {
     running: status.running,
     frameCount: status.frame_count,
-    fps: status.fps,
+    fps: Math.round(status.fps.value) + " " + status.fps.unit,
+    core_temp: Math.round(status?.core_temp?.value) + " " + status?.core_temp?.unit,
+    cpu_usage: Math.round(status?.cpu_usage?.value) + " " + status?.cpu_usage?.unit,
   } : {};
   const systemRunning = !!systemStatus.running;
 
@@ -107,7 +124,12 @@ function App() {
           <h2>Pet Status</h2>
           <ul>
             <li>Activity Level: <span className="status-active">{petStatus.activity ?? 'N/A'}</span></li>
-            <li>Bowl Fill Level: {petStatus.bowl ?? 'N/A'}</li>
+            <li>Bowl Level: {petStatus.bowl_label ?? 'N/A'}</li>
+            <li>Since Bowl Level: {
+              petStatus.since_bowl_level !== undefined
+                ? formatSecondsAdaptive(petStatus.since_bowl_level)
+                : 'N/A'
+            }</li>
             <li>Fountain Water Level: {petStatus.fountain ?? 'N/A'}</li>
           </ul>
         </div>
@@ -118,15 +140,6 @@ function App() {
             <li>moisture/01/adc: {mqttData['axelera.ai/moisture/01/adc'] ?? 'N/A'}</li>
             <li>moisture/01/gpio: {mqttData['axelera.ai/moisture/01/gpio'] ?? 'N/A'}</li>
           </ul>
-          <Button
-            variant="outlined"
-            color="warning"
-            onClick={() => publishReset('axelera.ai/moisture/01/control')}
-            disabled={!mqttConnected}
-            sx={{ fontWeight: 600, marginTop: '0.5em' }}
-          >
-            RESET
-          </Button>
         </div>
 
       </section>
@@ -137,12 +150,14 @@ function App() {
             <img
               src={`data:image/jpeg;base64,${frame0}`}
               alt="Live Camera 0"
-              width="320"
-              height="180"
-              style={{ borderRadius: '12px', boxShadow: '0 2px 12px #0002', objectFit: 'cover' }}
+              width={doubleCameraSize ? 640 : 320}
+              height={doubleCameraSize ? 360 : 180}
+              style={{ borderRadius: '12px', boxShadow: '0 2px 12px #0002', objectFit: 'cover', cursor: 'pointer' }}
+              onClick={() => setDoubleCameraSize(size => !size)}
             />
           ) : (
-            <div style={{ width: 320, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eee', borderRadius: '12px', boxShadow: '0 2px 12px #0002' }}>
+            <div style={{ width: doubleCameraSize ? 640 : 320, height: doubleCameraSize ? 360 : 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eee', borderRadius: '12px', boxShadow: '0 2px 12px #0002', cursor: 'pointer' }}
+              onClick={() => setDoubleCameraSize(size => !size)}>
               <span style={{ color: '#888' }}>Waiting for live frame...</span>
             </div>
           )}
@@ -154,12 +169,14 @@ function App() {
             <img
               src={`data:image/jpeg;base64,${frame1}`}
               alt="Live Camera 1"
-              width="320"
-              height="180"
-              style={{ borderRadius: '12px', boxShadow: '0 2px 12px #0002', objectFit: 'cover' }}
+              width={doubleCameraSize ? 640 : 320}
+              height={doubleCameraSize ? 360 : 180}
+              style={{ borderRadius: '12px', boxShadow: '0 2px 12px #0002', objectFit: 'cover', cursor: 'pointer' }}
+              onClick={() => setDoubleCameraSize(size => !size)}
             />
           ) : (
-            <div style={{ width: 320, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eee', borderRadius: '12px', boxShadow: '0 2px 12px #0002' }}>
+            <div style={{ width: doubleCameraSize ? 640 : 320, height: doubleCameraSize ? 360 : 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eee', borderRadius: '12px', boxShadow: '0 2px 12px #0002', cursor: 'pointer' }}
+              onClick={() => setDoubleCameraSize(size => !size)}>
               <span style={{ color: '#888' }}>Waiting for live frame...</span>
             </div>
           )}

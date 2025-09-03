@@ -6,7 +6,10 @@ const TOPICS = [
   'axelera.ai/moisture/01/adc',
   'axelera.ai/moisture/01/gpio',
   'axelera.ai/moisture/01/health',
-  'axelera.ai/feed_control/02/health'
+  'axelera.ai/feed_control/02/health',
+  'stat/4CHPRO/POWER1',
+  'stat/4CHPRO/POWER2',
+  'stat/4CHPRO/RESULT'
 ];
 
 export function useMqttStatus() {
@@ -27,10 +30,33 @@ export function useMqttStatus() {
     });
 
     client.on('message', (topic, message) => {
-      setMqttData(prev => ({
-        ...prev,
-        [topic]: message.toString()
-      }));
+      const messageStr = message.toString().trim();
+      console.log(`[MQTT] ${topic}: ${messageStr}`);
+
+      if (topic === 'stat/4CHPRO/POWER1' || topic === 'stat/4CHPRO/POWER2') {
+        // Handle simple ON/OFF messages
+        setMqttData(prev => ({
+          ...prev,
+          [topic]: messageStr
+        }));
+      } else if (topic === 'stat/4CHPRO/RESULT') {
+        try {
+          // Try to parse as JSON for RESULT messages
+          const jsonData = JSON.parse(messageStr);
+          setMqttData(prev => ({
+            ...prev,
+            [topic]: JSON.stringify(jsonData)
+          }));
+        } catch (e) {
+          console.error('Error parsing MQTT RESULT message:', e);
+        }
+      } else {
+        // Handle other messages
+        setMqttData(prev => ({
+          ...prev,
+          [topic]: messageStr
+        }));
+      }
     });
 
     client.on('close', () => setMqttConnected(false));
