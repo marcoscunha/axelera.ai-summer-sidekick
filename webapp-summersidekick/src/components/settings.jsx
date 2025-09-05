@@ -28,6 +28,7 @@ export function Settings({
         <div className="settings-section">
           <h3 className="settings-subheading">Food Dispenser</h3>
           <div className="settings-feed-row">
+            Portions:
             <input
               type="number"
               min={1}
@@ -51,7 +52,7 @@ export function Settings({
             className="settings-feed-btn"
             style={{ marginTop: '0.5em', background: '#e67e22' }}
           >
-            RESET Feed Dispenser
+            RESET DEVICE
           </button>
         </div>
         <div className="settings-section">
@@ -62,7 +63,7 @@ export function Settings({
             className="settings-feed-btn"
             style={{ marginTop: '0.5em', background: '#e67e22' }}
           >
-            RESET Soil Moisture
+            RESET DEVICE
           </button>
         </div>
       </div>
