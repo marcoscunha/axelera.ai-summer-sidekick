@@ -98,8 +98,13 @@ function App() {
     last_pet_active: status.pet_activity?.last_active_time,
     since_pet_active: status.pet_activity?.since_first_active_seconds,
     bowl_label: status.bowl_level.label,
-    since_bowl_level: status.bowl_level.since_first_detection_seconds,
-    fountain: status.fountain_water_level,
+    bowl_since_detection: status.bowl_level.since_first_detection_seconds,
+    fountain_label: status.fountain_level.label,
+    fountain_last_detection: status.fountain_level.last_detection_time,
+    fountain_since_detection: status.fountain_level.since_first_detection_seconds,
+    plant_label: status.plant_health?.label,
+    plant_last_detection: status.plant_health?.last_detection_time,
+    plant_since_detection: status.plant_health?.since_first_detection_seconds,
   } : {};
   const plantStatus = status ? {
     health: status.plant_health_status,
@@ -139,17 +144,32 @@ function App() {
     <>
       <section className="dashboard" style={{ display: 'flex', gap: '2rem', justifyContent: 'center', marginBottom: '2.5rem' }}>
         <div className="dashboard-item">
-          <h2>Pet Status</h2>
+          <h2>Pet Activity</h2>
           <ul>
-            <li>Pet Activity Status: <span className={petStatus.pet_active ? "status-active" : "status-inactive"}>{petStatus.pet_active ? "Active" : "Inactive" ?? 'N/A'}</span></li>
-            <li>Last Pet Active: {petStatus.last_pet_active !== undefined ?
+            <li>Activity: <span className={petStatus.pet_active ? "status-active" : "status-inactive"}>{petStatus.pet_active ? "Active" : "Inactive" ?? 'N/A'}</span></li>
+            <li>Last Activity: {petStatus.last_pet_active !== undefined ?
               formatDateTime(petStatus.last_pet_active) : 'N/A'
+            }</li>
+            <li>Duration: {petStatus.pet_active !== undefined
+              ? formatSecondsAdaptive(petStatus.since_pet_active)
+              : 'N/A'
+            }</li>
+          </ul>
+        </div>
+        <div className="dashboard-item">
+          <h2>Food Monitoring</h2>
+          <ul>
+            <li>Level: <span className={petStatus.bowl_label == "bowl_full" ? "status-green" :
+              petStatus.bowl_label == "bowl_half" ? "status-yellow" :
+                petStatus.bowl_label == "bowl_empty" ? "status-red" :
+                  "status-gray"}>{petStatus.bowl_label ?? 'N/A'}</span></li>
+            <li>Last Detection: {petStatus.bowl_since_detection !== undefined ?
+              formatDateTime(petStatus.bowl_since_detection) : 'N/A'
             }</li>
             <li>Duration Pet Active: {petStatus.pet_active !== undefined
               ? formatSecondsAdaptive(petStatus.since_pet_active)
               : 'N/A'
             }</li>
-            <li>Bowl Level: {petStatus.bowl_label ?? 'N/A'}</li>
             <li>Duration Bowl Level: {
               petStatus.since_bowl_level !== undefined
                 ? formatSecondsAdaptive(petStatus.since_bowl_level)
@@ -159,11 +179,34 @@ function App() {
           </ul>
         </div>
         <div className="dashboard-item">
-          <h2>Plant Status</h2>
+          <h2>Water Monitoring</h2>
           <ul>
-            <li>Health: {plantStatus.health ?? 'N/A'}</li>
-            <li>moisture/01/adc: {mqttData['axelera.ai/moisture/01/adc'] ?? 'N/A'}</li>
-            <li>moisture/01/gpio: {mqttData['axelera.ai/moisture/01/gpio'] ?? 'N/A'}</li>
+            <li>Level: <span className={petStatus.fountain_label === "fountain_middle" ? "status-green" :
+              petStatus.fountain_label == "fountain_low" ? "status-yellow" :
+                "status-gray"}>{petStatus.fountain_label ?? 'N/A'}</span></li>
+            <li>Last Detection: {petStatus.fountain_last_detection !== undefined ?
+              formatDateTime(petStatus.fountain_last_detection) : 'N/A'
+            }</li>
+            <li>Duration: {petStatus.fountain_since_detection !== undefined
+              ? formatSecondsAdaptive(petStatus.fountain_since_detection)
+              : 'N/A'
+            }</li>
+          </ul>
+        </div>
+        <div className="dashboard-item">
+          <h2>Plant Health</h2>
+          <ul>
+            <li>Health: {petStatus.plant_label === "unhealthy_plant" ? "Unhealthy" :
+              petStatus.plant_label === "healthy_plant" ? "Healthy" : "N/A"}</li>
+            <li>Last Detection: {petStatus.plant_last_detection !== undefined ?
+              formatDateTime(petStatus.plant_last_detection) : 'N/A'
+            }</li>
+            <li>Duration: {petStatus.plant_since_detection !== undefined
+              ? formatSecondsAdaptive(petStatus.plant_since_detection)
+              : 'N/A'
+            }</li>
+            <li>Soil Status: {mqttData['axelera.ai/moisture/01/gpio'] === 1 ? "Dry" : "Wet"}</li>
+            <li>Analog Soil Status: {mqttData['axelera.ai/moisture/01/adc'] ?? 'N/A'} / 4095</li>
           </ul>
         </div>
 
