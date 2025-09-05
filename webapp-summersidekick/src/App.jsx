@@ -5,39 +5,15 @@ import './App.css';
 import { useFeedDispenserPublisher } from './api/mqttPublish';
 import { useStartSystem, useStopSystem } from './api/system';
 import { useMqttStatus } from './api/useMqttStatus';
-import { useSystemStatusWS } from './api/ws';
+import { useCameraStreamWS, useSystemStatusWS } from './api/ws';
+
 import { Settings } from './components/settings';
 
+import { FoodMonitoring } from './components/FoodMonitoring';
+import { PetActivity } from './components/PetActivity';
+import { PlantHealth } from './components/PlantHealth';
+import { WaterMonitoring } from './components/WaterMonitoring';
 
-// Helper to format seconds to adaptive HH:MM:SS
-function formatSecondsAdaptive(seconds) {
-  seconds = Math.floor(seconds);
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  let result = '';
-  if (h > 0) result += `${h}:`;
-  if (m > 0 || h > 0) result += `${h > 0 && m < 10 ? '0' : ''}${m}:`;
-  result += `${(m > 0 || h > 0) && s < 10 ? '0' : ''}${s}`;
-  if (h === 0 && m === 0) {
-    result += ' seconds';
-  }
-  return result;
-}
-
-// Helper to format ISO date string to 'Date: DD/MM/YYYY Time: HH:MM'
-function formatDateTime(dateString) {
-  if (!dateString) return 'N/A';
-  const d = new Date(dateString);
-  if (isNaN(d.getTime())) return 'N/A';
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  // return `Date: ${day}/${month}/${year} Time: ${hours}:${minutes}`;
-  return `${day}/${month}/${year} ${hours}:${minutes}`;
-}
 
 // Helper to publish RESET to a topic
 function publishReset(topic) {
@@ -64,7 +40,8 @@ function App() {
   const stopMutation = useStopSystem();
   const error = startMutation.error || stopMutation.error;
   // systemRunning is derived from status.running, not local state
-  const { status, frame0, frame1, wsConnected, reconnect } = useSystemStatusWS();
+  const { status, wsConnected, reconnect } = useSystemStatusWS();
+  const { frame0, frame1, wsCamsConnected, camReconnect } = useCameraStreamWS();
   const { mqttConnected, mqttData, reconnectMqtt } = useMqttStatus();
   const [pendingAction, setPendingAction] = React.useState(null); // 'start' | 'stop' | null
   const [feedPortions, setFeedPortions] = React.useState(1);
@@ -98,6 +75,7 @@ function App() {
     last_pet_active: status.pet_activity?.last_active_time,
     since_pet_active: status.pet_activity?.since_first_active_seconds,
     bowl_label: status.bowl_level.label,
+    bowl_last_detection: status.bowl_level.last_detection_time,
     bowl_since_detection: status.bowl_level.since_first_detection_seconds,
     fountain_label: status.fountain_level.label,
     fountain_last_detection: status.fountain_level.last_detection_time,
@@ -105,9 +83,6 @@ function App() {
     plant_label: status.plant_health?.label,
     plant_last_detection: status.plant_health?.last_detection_time,
     plant_since_detection: status.plant_health?.since_first_detection_seconds,
-  } : {};
-  const plantStatus = status ? {
-    health: status.plant_health_status,
   } : {};
   const systemStatus = status ? {
     running: status.running,
@@ -143,73 +118,10 @@ function App() {
   const renderDashboard = () => (
     <>
       <section className="dashboard" style={{ display: 'flex', gap: '2rem', justifyContent: 'center', marginBottom: '2.5rem' }}>
-        <div className="dashboard-item">
-          <h2>Pet Activity</h2>
-          <ul>
-            <li>Activity: <span className={petStatus.pet_active ? "status-active" : "status-inactive"}>{petStatus.pet_active ? "Active" : "Inactive" ?? 'N/A'}</span></li>
-            <li>Last Activity: {petStatus.last_pet_active !== undefined ?
-              formatDateTime(petStatus.last_pet_active) : 'N/A'
-            }</li>
-            <li>Duration: {petStatus.pet_active !== undefined
-              ? formatSecondsAdaptive(petStatus.since_pet_active)
-              : 'N/A'
-            }</li>
-          </ul>
-        </div>
-        <div className="dashboard-item">
-          <h2>Food Monitoring</h2>
-          <ul>
-            <li>Level: <span className={petStatus.bowl_label == "bowl_full" ? "status-green" :
-              petStatus.bowl_label == "bowl_half" ? "status-yellow" :
-                petStatus.bowl_label == "bowl_empty" ? "status-red" :
-                  "status-gray"}>{petStatus.bowl_label ?? 'N/A'}</span></li>
-            <li>Last Detection: {petStatus.bowl_since_detection !== undefined ?
-              formatDateTime(petStatus.bowl_since_detection) : 'N/A'
-            }</li>
-            <li>Duration Pet Active: {petStatus.pet_active !== undefined
-              ? formatSecondsAdaptive(petStatus.since_pet_active)
-              : 'N/A'
-            }</li>
-            <li>Duration Bowl Level: {
-              petStatus.since_bowl_level !== undefined
-                ? formatSecondsAdaptive(petStatus.since_bowl_level)
-                : 'N/A'
-            }</li>
-            <li>Fountain Water Level: {petStatus.fountain ?? 'N/A'}</li>
-          </ul>
-        </div>
-        <div className="dashboard-item">
-          <h2>Water Monitoring</h2>
-          <ul>
-            <li>Level: <span className={petStatus.fountain_label === "fountain_middle" ? "status-green" :
-              petStatus.fountain_label == "fountain_low" ? "status-yellow" :
-                "status-gray"}>{petStatus.fountain_label ?? 'N/A'}</span></li>
-            <li>Last Detection: {petStatus.fountain_last_detection !== undefined ?
-              formatDateTime(petStatus.fountain_last_detection) : 'N/A'
-            }</li>
-            <li>Duration: {petStatus.fountain_since_detection !== undefined
-              ? formatSecondsAdaptive(petStatus.fountain_since_detection)
-              : 'N/A'
-            }</li>
-          </ul>
-        </div>
-        <div className="dashboard-item">
-          <h2>Plant Health</h2>
-          <ul>
-            <li>Health: {petStatus.plant_label === "unhealthy_plant" ? "Unhealthy" :
-              petStatus.plant_label === "healthy_plant" ? "Healthy" : "N/A"}</li>
-            <li>Last Detection: {petStatus.plant_last_detection !== undefined ?
-              formatDateTime(petStatus.plant_last_detection) : 'N/A'
-            }</li>
-            <li>Duration: {petStatus.plant_since_detection !== undefined
-              ? formatSecondsAdaptive(petStatus.plant_since_detection)
-              : 'N/A'
-            }</li>
-            <li>Soil Status: {mqttData['axelera.ai/moisture/01/gpio'] === 1 ? "Dry" : "Wet"}</li>
-            <li>Analog Soil Status: {mqttData['axelera.ai/moisture/01/adc'] ?? 'N/A'} / 4095</li>
-          </ul>
-        </div>
-
+        <PetActivity petStatus={petStatus} />
+        <FoodMonitoring petStatus={petStatus} />
+        <WaterMonitoring petStatus={petStatus} />
+        <PlantHealth petStatus={petStatus} mqttData={mqttData} />
       </section>
       <section className="camera-stream" style={{ display: 'flex', gap: '2rem', justifyContent: 'center' }}>
         <div>
@@ -264,6 +176,8 @@ function App() {
       handleStop={handleStop}
       isLoading={isLoading}
       wsConnected={wsConnected}
+      wsCamsConnected={wsCamsConnected}
+      camReconnect={camReconnect}
       reconnect={reconnect}
       reconnectMqtt={reconnectMqtt}
       mqttData={mqttData}

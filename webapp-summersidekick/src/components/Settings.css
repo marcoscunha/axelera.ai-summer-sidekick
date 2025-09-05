@@ -91,3 +91,20 @@
   margin-top: 0.7em;
   font-weight: 600;
 }
+
+.status-green {
+  color: #2ecc40;
+  font-weight: bold;
+}
+.status-yellow {
+  color: #be9c10;
+  font-weight: bold;
+}
+.status-red {
+  color: #e74c3c;
+  font-weight: bold;
+}
+.status-gray {
+  color: #7f8c8d;
+  font-weight: bold;
+}
