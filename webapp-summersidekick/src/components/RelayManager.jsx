@@ -44,7 +44,9 @@ export default function RelayManager() {
         console.error('Error parsing MQTT RESULT:', error);
       }
     }
-  }, [mqttData]); const toggleRelay = async (relayNumber) => {
+  }, [mqttData]);
+
+  const toggleRelay = async (relayNumber) => {
     if (!mqttConnected) {
       console.error('MQTT is not connected');
       return;

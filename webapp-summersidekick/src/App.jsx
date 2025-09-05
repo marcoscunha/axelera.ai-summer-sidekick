@@ -2,7 +2,7 @@ import Button from '@mui/material/Button';
 import mqtt from 'mqtt';
 import React from 'react';
 import './App.css';
-import { useFeedDispenserPublisher } from './api/mqttPublish';
+// import { useFeedDispenserPublisher } from './api/mqttPublish';
 import { useStartSystem, useStopSystem } from './api/system';
 import { useMqttStatus } from './api/useMqttStatus';
 import { useCameraStreamWS, useSystemStatusWS } from './api/ws';
@@ -44,9 +44,8 @@ function App() {
   const { frame0, frame1, wsCamsConnected, camReconnect } = useCameraStreamWS();
   const { mqttConnected, mqttData, reconnectMqtt } = useMqttStatus();
   const [pendingAction, setPendingAction] = React.useState(null); // 'start' | 'stop' | null
-  const [feedPortions, setFeedPortions] = React.useState(1);
-  const publishFeed = useFeedDispenserPublisher();
-  const [feedLoading, setFeedLoading] = React.useState(false);
+  // const [feedPortions, setFeedPortions] = React.useState(1);
+  // const publishFeed = useFeedDispenserPublisher();
 
   const handleStart = async () => {
     setPendingAction('start');
@@ -109,19 +108,14 @@ function App() {
     if (pendingAction === 'stop' && !systemRunning) setPendingAction(null);
   }, [systemRunning, pendingAction]);
 
-  const handleFeedPublish = async () => {
-    setFeedLoading(true);
-    publishFeed(feedPortions);
-    setTimeout(() => setFeedLoading(false), 1000); // Simulate quick publish
-  };
 
   const renderDashboard = () => (
     <>
       <section className="dashboard" style={{ display: 'flex', gap: '2rem', justifyContent: 'center', marginBottom: '2.5rem' }}>
         <PetActivity petStatus={petStatus} />
-        <FoodMonitoring petStatus={petStatus} />
+        <FoodMonitoring petStatus={petStatus} mqttConnected={mqttConnected} />
         <WaterMonitoring petStatus={petStatus} />
-        <PlantHealth petStatus={petStatus} mqttData={mqttData} />
+        <PlantHealth petStatus={petStatus} />
       </section>
       <section className="camera-stream" style={{ display: 'flex', gap: '2rem', justifyContent: 'center' }}>
         <div>
@@ -164,10 +158,10 @@ function App() {
 
   const renderSettings = () => (
     <Settings
-      feedPortions={feedPortions}
-      setFeedPortions={setFeedPortions}
-      feedLoading={feedLoading}
-      handleFeedPublish={handleFeedPublish}
+      // feedPortions={feedPortions}
+      // setFeedPortions={setFeedPortions}
+      // feedLoading={feedLoading}
+      // handleFeedPublish={handleFeedPublish}
       mqttConnected={mqttConnected}
       publishReset={publishReset}
       systemStatus={systemStatus}

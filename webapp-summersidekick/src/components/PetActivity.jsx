@@ -14,10 +14,10 @@ export function PetActivity({ petStatus }) {
             <h2>Pet Activity</h2>
             <ul>
                 <li>Status: <span className={statusInfo.className}>{statusInfo.label}</span></li>
-                <li>Last Active: {petStatus.last_pet_active !== undefined ?
+                <li>Last Activity: {petStatus.last_pet_active !== undefined ?
                     formatDateTime(petStatus.last_pet_active) : 'N/A'
                 }</li>
-                <li>Duration Active: {petStatus.pet_active !== undefined
+                <li>Activity duration: {petStatus.pet_active !== undefined
                     ? formatSecondsAdaptive(petStatus.since_pet_active)
                     : 'N/A'
                 }</li>

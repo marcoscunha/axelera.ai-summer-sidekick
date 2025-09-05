@@ -27,7 +27,7 @@ export function Settings({
         <RelayManager />
         <div className="settings-section">
           <h3 className="settings-subheading">Food Dispenser</h3>
-          <div className="settings-feed-row">
+          {/* <div className="settings-feed-row">
             Portions:
             <input
               type="number"
@@ -45,7 +45,7 @@ export function Settings({
             >
               {feedLoading ? 'Sending...' : 'Send'}
             </button>
-          </div>
+          </div> */}
           <button
             onClick={() => publishReset('axelera.ai/feed_control/02/control')}
             disabled={!mqttConnected}
