@@ -27,21 +27,32 @@ def test_inference():
 
         while app_state.system_running:
             print(f"=================================")
+            since_time = (app_state.bowl_level.last_detection_time -
+                          app_state.bowl_level.first_detection_time).total_seconds()
             print(f"bowl_level")
             print(f"  label      : {app_state.bowl_level.label}")
             print(f"  score      : {app_state.bowl_level.score}")
             print(f"  last_time  : {app_state.bowl_level.last_detection_time.isoformat()}")
             print(f"  first_time : {app_state.bowl_level.first_detection_time.isoformat()}")
-            print(
-                f"  since      : {(app_state.bowl_level.last_detection_time - app_state.bowl_level.first_detection_time).total_seconds()} seconds")
+            print(f"  since      : {since_time} seconds")
             print(f"**********************************")
+            since_time = (app_state.pet_activity.last_active_time -
+                          app_state.pet_activity.first_active_time).total_seconds()
             print(f"pet_activity")
             print(f"  active     : {app_state.pet_activity.active}")
             print(f"  score      : {app_state.pet_activity.score}")
             print(f"  last_time  : {app_state.pet_activity.last_active_time.isoformat()}")
             print(f"  first_time : {app_state.pet_activity.first_active_time.isoformat()}")
-            print(
-                f"  since      : {(app_state.pet_activity.last_active_time - app_state.pet_activity.first_active_time).total_seconds()} seconds")
+            print(f"  since      : {since_time} seconds")
+            print(f"**********************************")
+            since_time = (app_state.fountain_level.last_detection_time -
+                          app_state.fountain_level.first_detection_time).total_seconds()
+            print(f"fountain_level")
+            print(f"  label      : {app_state.fountain_level.label}")
+            print(f"  score      : {app_state.fountain_level.score}")
+            print(f"  last_time  : {app_state.fountain_level.last_detection_time.isoformat()}")
+            print(f"  first_time : {app_state.fountain_level.first_detection_time.isoformat()}")
+            print(f"  since      : {since_time} seconds")
             time.sleep(1)
 
         # def center(box): return ((box[0] + box[2]) // 2, (box[1] + box[3]) // 2)
@@ -66,6 +77,7 @@ if __name__ == "__main__":
 #     app.run()
 # stream.stop()
 #     app.run()
+# stream.stop()
 # stream.stop()
 # stream.stop()
 # stream.stop()

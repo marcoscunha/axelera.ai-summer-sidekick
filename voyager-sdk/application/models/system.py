@@ -13,6 +13,14 @@ class BowlLevel(BaseModel):
     since_first_detection_seconds: float = 0.0
 
 
+class FountainLevel(BaseModel):
+    label: str = "undefined"
+    score: float = 0.0
+    last_detection_time: datetime = None
+    first_detection_time: datetime = None
+    since_first_detection_seconds: float = 0.0
+
+
 class PetActivity(BaseModel):
     active: bool = False
     score: float = 0.0
@@ -34,6 +42,5 @@ class SystemStatus(BaseModel):
     cpu_usage: ValueUnit
     pet_activity: PetActivity
     bowl_level: BowlLevel
-    fountain_water_level: float
+    fountain_level: FountainLevel
     plant_health_status: str
-    water_solenoid_states: Dict[str, bool]

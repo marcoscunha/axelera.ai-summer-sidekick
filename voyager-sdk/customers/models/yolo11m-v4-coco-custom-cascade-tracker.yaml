@@ -1,8 +1,8 @@
 axelera-model-format: 1.0.0
 
-name: yolo11m-v2-coco-custom-cascade-tracker
+name: yolo11m-v4-coco-custom-cascade-tracker
 
-description: YOLO11M with object tracking (OC-SORT), YOLO11N with custom classes cascaded with mobilenet_bowl_level
+description: YOLO11M with object tracking (OC-SORT), YOLO11N with custom classes cascaded with mobilenet_bowl_level and plant_health classifiers.
 
 pipeline:
   - full_detections:
@@ -40,22 +40,22 @@ pipeline:
             nms_class_agnostic: False
             nms_top_k: 100
             use_multi_label: False
-  - pet_tracker:
-      model_name: oc_sort
-      input:
-        source: full
-        color_format: RGB
-      cv_process:
-        - tracker:
-            algorithm: oc-sort
-            bbox_task_name: full_detections
-            label_filter: cat
-            history_length: 300
-            algo_params:
-              max_age: 50
-              min_hits: 1
-              iou_threshold: 0.3
-              max_id: 0
+  # - pet_tracker:
+  #     model_name: oc_sort
+  #     input:
+  #       source: full
+  #       color_format: RGB
+  #     cv_process:
+  #       - tracker:
+  #           algorithm: oc-sort
+  #           bbox_task_name: full_detections
+  #           label_filter: cat
+  #           history_length: 300
+  #           algo_params:
+  #             max_age: 50
+  #             min_hits: 1
+  #             iou_threshold: 0.3
+  #             max_id: 0
   - bowl_level:
       model_name: mobilenetv2-imagenet-bowl
       input:
@@ -78,6 +78,52 @@ pipeline:
       postprocess:
         - topk:
             k: 1
+  # - fountain_level:
+  #     model_name: mobilenetv2-imagenet-fountain
+  #     input:
+  #       type: image
+  #       source: roi
+  #       label_filter: custom_pet_fountain
+  #       where: custom_detections
+  #       which: AREA # AREA, SCORE, CENTER
+  #       top_k: 5
+  #     preprocess:
+  #       - resize:
+  #           size: 256
+  #       - centercrop:
+  #           width: ${{input_width}}
+  #           height: ${{input_height}}
+  #       - torch-totensor:
+  #       - normalize:
+  #           mean: 0.485, 0.456, 0.406
+  #           std: 0.229, 0.224, 0.225
+  #     postprocess:
+  #       - topk:
+  #           k: 1
+  - plant_health:
+      model_name: mobilenetv2-imagenet-plant
+      input:
+        type: image
+        source: roi
+        label_filter: potted_plant
+        where: full_detections
+        which: AREA # AREA, SCORE, CENTER
+        top_k: 5
+      preprocess:
+        - resize:
+            size: 256
+        - centercrop:
+            width: ${{input_width}}
+            height: ${{input_height}}
+        - torch-totensor:
+        - normalize:
+            mean: 0.485, 0.456, 0.406
+            std: 0.229, 0.224, 0.225
+      postprocess:
+        - topk:
+            k: 1
+
+
 
 operators:
   decodeyolo:
@@ -99,7 +145,7 @@ models:
     dataset: CocoDataset-COCO2017
     extra_kwargs:
       max_compiler_cores: 6
-      aipu_cores: 2
+      aipu_cores: 1
       compilation_config:
         quantization_scheme: per_tensor_min_max
         ignore_weight_buffers: False
@@ -121,9 +167,9 @@ models:
       compilation_config:
         quantization_scheme: per_tensor_min_max
         ignore_weight_buffers: False
-  oc_sort:
-    model_type: CLASSICAL_CV
-    task_category: ObjectTracking
+  # oc_sort:
+  #   model_type: CLASSICAL_CV
+  #   task_category: ObjectTracking
   mobilenetv2-imagenet-bowl:
     class: AxONNXModel
     class_path: $AXELERA_FRAMEWORK/ax_models/base_onnx.py
@@ -138,6 +184,34 @@ models:
       max_compiler_cores: 6
       aipu_cores: 1
       num-cal-images: 24
+  # mobilenetv2-imagenet-fountain:
+  #   class: AxONNXModel
+  #   class_path: $AXELERA_FRAMEWORK/ax_models/base_onnx.py
+  #   weight_path: mobilenetv2_fountain_level_classifier.onnx
+  #   task_category: Classification
+  #   input_tensor_layout: NCHW
+  #   input_tensor_shape: [1, 3, 224, 224]
+  #   input_color_format: RGB # RGB, BGR, Gray
+  #   dataset: fountain-custom
+  #   num_classes: 2
+  #   extra_kwargs:
+  #     max_compiler_cores: 6
+  #     aipu_cores: 1
+  #     num-cal-images: 36
+  mobilenetv2-imagenet-plant:
+    class: AxONNXModel
+    class_path: $AXELERA_FRAMEWORK/ax_models/base_onnx.py
+    weight_path: mobilenetv2_plant_health_classifier.onnx
+    task_category: Classification
+    input_tensor_layout: NCHW
+    input_tensor_shape: [1, 3, 224, 224]
+    input_color_format: RGB # RGB, BGR, Gray
+    dataset: plant-custom
+    num_classes: 2
+    extra_kwargs:
+      max_compiler_cores: 6
+      aipu_cores: 1
+
 
 datasets: # Python dataloader
   CocoDataset-COCO2017:
@@ -172,3 +246,16 @@ datasets: # Python dataloader
     # repr_imgs_md5: b680128512392586e3c86b670886d9fa
     # cal_data: /path/to/the/cal/dir
     # val_data: /path/to/the/val/dir
+  # fountain-custom:
+  #   class: TorchvisionDataAdapter
+  #   class_path: $AXELERA_FRAMEWORK/ax_datasets/torchvision.py
+  #   data_dir_name: ImageNet
+  #   labels_path: $AXELERA_FRAMEWORK/customers/datasets/labels/fountain.txt
+  #   repr_imgs_dir_path: $AXELERA_FRAMEWORK/customers/data/mobilenet_fountain/repr
+  plant-custom:
+    class: TorchvisionDataAdapter
+    class_path: $AXELERA_FRAMEWORK/ax_datasets/torchvision.py
+    data_dir_name: ImageNet
+    labels_path: $AXELERA_FRAMEWORK/customers/datasets/labels/plant.txt
+    repr_imgs_dir_path: $AXELERA_FRAMEWORK/customers/data/mobilenet_plant/repr
+
