@@ -1,17 +1,28 @@
-# axelera.ai-summer-sidekick
-Pioneer 10 - Axelera AI Vision Challenge
+# 🐱 Summer Sidekick - Axelera AI 🪴
+## Pioneer 10 - Axelera AI Vision Challenge
 
-This project contains all files needed to execute and replicate Project Summer SideKick for the PIONEER 10 Challenge proposed by AXELERA AI.
+<!-- You can use these icons for water and pet food throughout the document: -->
+<!-- Water: 💧 -->
+<!-- Pet Food: 🍖 -->
 
-## Folder Descriptions
+## Demos
 
-- `notebooks/`: Jupyter notebooks for training, finetuning, and exporting YOLO and MobileNet models.
-- `labels/`: Contains label files and annotation data for the datasets.
-- `embedded/`: All source code for the embedded projects related to the challenge.
-- `scripts/`: Useful scripts for copying files, transforming annotation formats, and automating deployment to Axelera hardware.
-- `diagrams/`: Diagrams to explain the project architecture.
-- `voyager-sdk`: Content to be copied to the voyager-sdk folder on the board. It contains the models and backend implementation.
-- `mqtt`: Configuration file for the mosquitto server.
+I’m sharing a short video 🎬 [Platform Demo](https://youtu.be/knuxPkaQmX4) (still without audio — I’m looking for an easy-to-use app for adding narration). The demo is fairly self-explanatory, but here’s a quick breakdown:
+1) Automatic food dispenser
+* At the start of the video, you can see the bowl empty.
+* When the bowl is empty, the algorithm waits about one minute before triggering the food dispenser.
+* Take a look at Live Camera 0.
+* You can also observe the monitoring status updating as the bowl becomes full.
+
+2) Pet activity detection
+
+* In the second part of the video, detection is triggered when the cat walks in front of the camera.
+* (Now I just need to motivate my daughter’s cat to cooperate 😅.)
+* When the cat goes out, the period of activity is available to ensure the last activity.
+
+
+
+You can fide a video with all models running on Metis : 🎬 [All Models Demo](https://youtu.be/GOBVkfP_o00)
 
 # Project Summary
 
@@ -30,6 +41,7 @@ The objective of the challenge was to create an AI-powered system that uses mach
 - User-friendly dashboard for remote status checks and system control.
 
 ## 2. System Architecture
+
 The system architecture consists of several integrated components:
 
 ![High Level Architecture Diagram](diagrams/HighLevelDiagram.drawio.png)
@@ -109,7 +121,7 @@ The frontend is written in REACT.js and concentrates all system information on t
 
 The other screen is the settings, which allows you to see the actual system status and control some device parameters.
 
-![Settings](diagrams/FrontEndSettings.png)
+![Settings](diagrams/FrontEndSettings2.png)
 
 ## 5. Results & Evaluation
 
@@ -146,7 +158,19 @@ This was a challenge that involved building a lot of small systems almost from s
 
 Model creation was equally challenging—the entire process for data acquisition, data annotation (the most time-consuming), and training represents a huge evaluation loop, which can be a very time-consuming task. During this process, one of the finetuned models presented catastrophic forgetting while finetuning. The techniques I tried to apply did not work as expected, and I had to work with two different YOLO models. It worked :) .
 
-## 7. Demos
 
-## 7. Demos
+## 7. Folder Descriptions
+
+- `notebooks/`: Jupyter notebooks for training, finetuning, and exporting YOLO and MobileNet models.
+- `labels/`: Contains label files and annotation data for the datasets.
+- `embedded/`: All source code for the embedded projects related to the challenge.
+- `scripts/`: Useful scripts for copying files, transforming annotation formats, and automating deployment to Axelera hardware.
+- `diagrams/`: Diagrams to explain the project architecture.
+- `voyager-sdk`: Content to be copied to the voyager-sdk folder on the board. It contains the models and backend implementation.
+- `mqtt`: Configuration file for the mosquitto server.
+- `webapp-summersidekick`: Contains the code source of the webapp application.
+
+
+
+
 
