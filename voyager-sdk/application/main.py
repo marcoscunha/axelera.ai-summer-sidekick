@@ -10,6 +10,7 @@ from application.routes.websocket import router as WebSocketRoutes
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -32,6 +33,8 @@ app.include_router(WebSocketRoutes, tags=["WebSocket"], prefix="/ws")
 
 # Mount static files and templates
 app.mount("/static", StaticFiles(directory="application/static"), name="static")
+app.mount("/assets", StaticFiles(directory="application/static/assets"), name="assets")
+# If vite.svg is in static, it will be served at /static/vite.svg
 templates = Jinja2Templates(directory="templates")
 
 app.add_middleware(
@@ -43,11 +46,12 @@ app.add_middleware(
 )
 
 
-@app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
-    """Serve the main web interface"""
-    return templates.TemplateResponse("index.html", {"request": request})
+@app.get("/", response_class=FileResponse)
+async def root():
+    """Serve the static site index.html"""
+    return FileResponse("application/static/index.html")
 
 if __name__ == "__main__":
+    pass
     pass
     pass
