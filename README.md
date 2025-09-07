@@ -46,22 +46,20 @@ The system architecture consists of several integrated components:
 
 ![High Level Architecture Diagram](diagrams/HighLevelDiagram.drawio.png)
 
-The system architecture diagram illustrates the input sources (sensors and cameras), the outputs (web application and actuators), and the central backend, which consists of the MQTT broker and server.
+The system architecture diagram illustrates the input sources (sensor and cameras), the outputs (web application and actuators), and the central backend, which consists of the MQTT broker and server.
 
 ## 3. Main Components
 
 This section brings more details about the hardware, software, and AI components.
 
-- Hardware components.
-
 - **Low-Level Components:**
-  - Sensors: Soil moisture sensors placed on the potted plant.
+  - Sensor: Soil moisture sensor placed on the potted plant.
   - Camera: Captures images and video streams to monitor pet activity, food and water levels, and plant health.
   - Actuators: Control valves for filling the pet fountain and plant irrigation system.
 
 - **Backend:**
   - AI System: Processes camera data to detect pet presence, monitor fountain water level, assess bowl food level, and evaluate plant health.
-  - WebSocket Server: Exposes system status and real-time updates to the frontend for live monitoring.
+  - Server: Exposes system status and real-time updates to the frontend for live monitoring via Websockets and start/stop system control via REST API.
   - MQTT Broker: Implements a publish-subscribe mechanism, commonly used in IoT projects, to control actuators and receive sensor data.
 
 - **Frontend:**
@@ -104,11 +102,10 @@ Unfortunately, I still need a solution to share the dataset effectively. If you 
 This pipeline was composed of 5 computer vision models.
 
 ![Pipelines](diagrams/SummerSideKickPipeline.drawio.png)
-- Integration and deployment strategy.
 
-Four custom models were created during this challenge. Their training and validation process are available in the [notebooks] folder.
+Four custom models were created/finetunned during this challenge. Their training and validation process are available in the [notebooks] folder.
 
-⚠️ Due to my limited knowledge of voyager-sdk, I did not succeed in putting all 5 models on Mentis, just 4 of them. I removed the fountain level from the pipeline for the demo video.
+⚠️ Due to my limited knowledge of voyager-sdk, I did not succeed in putting all 5 models on Mentis, just 4 of them. I removed the fountain level from the pipeline for the demo videos.
 
 During the pipeline development, I wrote this blog post you can find here:
 [Summer Sidekick Update: Running AI on Mentis!](https://community.axelera.ai/project-challenge-recognize-react-27/summer-sidekick-update-running-ai-on-mentis-973?tid=973&fid=27)
@@ -161,16 +158,16 @@ Model creation was equally challenging—the entire process for data acquisition
 
 ## 7. Folder Descriptions
 
-- `notebooks/`: Jupyter notebooks for training, finetuning, and exporting YOLO and MobileNet models.
-- `labels/`: Contains label files and annotation data for the datasets.
-- `embedded/`: All source code for the embedded projects related to the challenge.
-- `scripts/`: Useful scripts for copying files, transforming annotation formats, and automating deployment to Axelera hardware.
 - `diagrams/`: Diagrams to explain the project architecture.
-- `voyager-sdk`: Content to be copied to the voyager-sdk folder on the board. It contains the models and backend implementation.
-- `mqtt`: Configuration file for the mosquitto server.
-- `webapp-summersidekick`: Contains the code source of the webapp application.
+- `embedded/`: All source code for the embedded projects related to the challenge.
+- `labels/`: Contains label files and annotation data for the datasets.
+- `notebooks/`: Jupyter notebooks for training, finetuning, and exporting YOLO and MobileNet models.
+- `scripts/`: Useful scripts for copying files, transforming annotation formats, and automating deployment to Axelera hardware.
+- `mqtt/`: Configuration file for the mosquitto server.
+- `voyager-sdk/`: Content to be copied to the voyager-sdk folder on the board. It contains the models and backend implementation.
+- `webapp-summersidekick/`: Contains the code source of the webapp application.
 
+## 8. Other README files
 
-
-
-
+- `voyager-sdk/README.APP.md`: Contains intructions to deploy the backend application on Axelera Board
+- `webapp-summersidekick/README.md`: Contains intructions to develop, to compile and to deploy the webapp on Axelera Board

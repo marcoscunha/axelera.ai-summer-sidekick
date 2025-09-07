@@ -1,12 +1,35 @@
-# React + Vite
+# Instructions to work with the webapp
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Compile for development
 
-Currently, two official plugins are available:
+```bash
+nvm run dev
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+# Deploy the Application on Axelera Boards
 
-## Expanding the ESLint configuration
+## Compile the application for production environment
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+nvm run build
+```
+
+# To deploy the application on the Axelera Board
+
+If you are not in the webapp folder, go to it:
+```bash
+cd webapp-summersidekick
+```
+
+Copy the build files to the board:
+```bash
+scp -r dist/* aetina@<board-ip>:<path-to-voyager-sdk>/application/static
+```
+
+## Access from the board
+
+In your preferred browser, enter the following URL:
+
+```
+http://<board-ip>:8000
+```
